@@ -11,17 +11,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>{
   bool? _esAdmin;
+  String? fullName;
   final user = FirebaseAuth.instance.currentUser;
 
   Future<bool> esAdmin(String uid) async {
     final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    print(doc);
-    if (!doc.exists) return false;
 
+    if (!doc.exists) return false;
     final data = doc.data();
-    print(data);
+    setState(() {
+      fullName = data?['nombre'] + " " + data?['apellido'];
+    });
     return data?['admin'] == true;
   }
+
+
 
   @override
   void initState() {
@@ -57,7 +61,7 @@ class _HomePageState extends State<HomePage>{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('¡Bienvenido, ${user?.email ?? "usuario"}!'),
+            Text('¡Bienvenido, ${fullName ?? "usuario"}!'),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {

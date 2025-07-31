@@ -13,6 +13,8 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nombreController = TextEditingController();
+  final _apellidoController = TextEditingController();
   bool _esAdmin = false;
   bool _cargando = false;
 
@@ -34,6 +36,8 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'email': _emailController.text.trim(),
         'admin': _esAdmin,
+        'nombre': _nombreController.text.trim(),
+        'apellido': _apellidoController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -43,6 +47,9 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
 
       _emailController.clear();
       _passwordController.clear();
+      _apellidoController.clear();
+      _nombreController.clear();
+
       setState(() {
         _esAdmin = false;
         _cargando = false;
@@ -79,6 +86,22 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
                 validator: (value) => value != null && value.length >= 6
                     ? null
                     : 'Mínimo 6 caracteres',
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _nombreController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+                validator: (value) => value != null && value.length >= 3
+                    ? null
+                    : 'Mínimo 3 caracteres',
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _apellidoController,
+                decoration: const InputDecoration(labelText: 'Apellido'),
+                validator: (value) => value != null && value.length >= 3
+                    ? null
+                    : 'Mínimo 3 caracteres',
               ),
               const SizedBox(height: 12),
               Row(

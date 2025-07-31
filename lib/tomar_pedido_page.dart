@@ -92,7 +92,7 @@ class _TomarPedidoPageState extends State<TomarPedidoPage> {
             TextField(
               controller: nombreClienteController,
               decoration: const InputDecoration(labelText: "Nombre cliente"),
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.name,
             ),
             const SizedBox(height: 16),
             const Text(
