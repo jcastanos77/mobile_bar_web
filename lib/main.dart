@@ -35,7 +35,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Punto de Venta',
+        theme: ThemeData.dark().copyWith(
+          scaffoldBackgroundColor: const Color(0xFF121212),
+          cardColor: const Color(0xFF1E1E1E),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF1F1F1F),
+            elevation: 0,
+            centerTitle: true,
+          ),
+          colorScheme: ColorScheme.dark(
+            primary: Colors.tealAccent,
+            secondary: Colors.deepPurpleAccent,
+          ),
+          textTheme: const TextTheme(
+            headlineSmall: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+            bodyMedium: TextStyle(color: Colors.white70),
+          ),
+        ),
         home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {

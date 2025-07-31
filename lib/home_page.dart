@@ -9,13 +9,47 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>{
+class _HomePageState extends State<HomePage> {
   bool? _esAdmin;
   String? fullName;
   final user = FirebaseAuth.instance.currentUser;
 
+  int ventasHoy = 0;
+  int pedidosActivos = 0;
+  int totalProductos = 0;
+
+  Future<void> cargarEstadisticas() async {
+    final hoy = DateTime.now();
+    final inicioHoy = DateTime(hoy.year, hoy.month, hoy.day);
+
+    // Ventas del día
+    final ventasSnap = await FirebaseFirestore.instance
+        .collection('ventas')
+        .where('fecha', isGreaterThan: inicioHoy.toIso8601String())
+        .get();
+
+    // Pedidos activos
+    final pedidosSnap = await FirebaseFirestore.instance
+        .collection('pedidos')
+        .where('estado', whereNotIn: ['entregado', 'cancelado'])
+        .get();
+
+    // Productos
+    final productosSnap = await FirebaseFirestore.instance.collection(
+        'productos').get();
+
+    setState(() {
+      ventasHoy = ventasSnap.docs.length;
+      pedidosActivos = pedidosSnap.docs.length;
+      totalProductos = productosSnap.docs.length;
+    });
+  }
+
   Future<bool> esAdmin(String uid) async {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
 
     if (!doc.exists) return false;
     final data = doc.data();
@@ -25,28 +59,25 @@ class _HomePageState extends State<HomePage>{
     return data?['admin'] == true;
   }
 
-
-
   @override
   void initState() {
     super.initState();
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = user?.uid;
 
     if (uid != null) {
       esAdmin(uid).then((valor) {
-        setState(() {
-          _esAdmin = valor;
-        });
+        setState(() => _esAdmin = valor);
+        cargarEstadisticas();
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Punto de Venta'),
+        title: const Text('Otro Trago Mobile Bar'),
+        backgroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -54,60 +85,105 @@ class _HomePageState extends State<HomePage>{
               await FirebaseAuth.instance.signOut();
               Navigator.pushReplacementNamed(context, '/login');
             },
-          )
+          ),
         ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('¡Bienvenido, ${fullName ?? "usuario"}!'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/tomar_pedidos');
-              },
-              child: const Text('Tomar pedidos'),
-            ),
-            const SizedBox(height: 20),
-            if (_esAdmin == true)
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/historial');
-              },
-              child: const Text('Historial de ventas'),
-            ),
-            const SizedBox(height: 20),
-            if (_esAdmin == true)
-              ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/agregar_producto');
-              },
-              child: const Text('Agregar producto'),
-            ),
-            const SizedBox(height: 20),
-            if (_esAdmin == true)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/registrar');
-                },
-                child: const Text('Registrar usuario'),
+            Text(
+              '¡Bienvenido, ${fullName ?? "usuario"}!',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/productos');
-              },
-              child: const Text('Ver productos'),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/pedidos_time_real');
-              },
-              child: const Text('Ver pedidos'),
+            const SizedBox(height: 24),
+            Expanded(
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: [
+                  _buildCardButton(
+                    icon: Icons.add_shopping_cart,
+                    label: 'Tomar pedidos',
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/tomar_pedidos'),
+                  ),
+                  if (_esAdmin == true)
+                    _buildCardButton(
+                      icon: Icons.history,
+                      label: 'Historial ventas',
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/historial'),
+                    ),
+                  if (_esAdmin == true)
+                    _buildCardButton(
+                      icon: Icons.add_box,
+                      label: 'Agregar producto',
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/agregar_producto'),
+                    ),
+                  if (_esAdmin == true)
+                    _buildCardButton(
+                      icon: Icons.person_add,
+                      label: 'Registrar usuario',
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/registrar'),
+                    ),
+                  _buildCardButton(
+                    icon: Icons.list_alt,
+                    label: 'Ver productos',
+                    onPressed: () => Navigator.pushNamed(context, '/productos'),
+                  ),
+                  _buildCardButton(
+                    icon: Icons.local_bar,
+                    label: 'Ver pedidos',
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/pedidos_time_real'),
+                  ),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: 160,
+      height: 160,
+      child: Card(
+        color: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 4,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 48, color: Colors.tealAccent),
+                const SizedBox(height: 12),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

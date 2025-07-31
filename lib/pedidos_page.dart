@@ -44,14 +44,13 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage> {
                   final data = doc.data() as Map<String, dynamic>;
                   final estado = data['estado'] ?? 'pendiente';
                   final mesa = data['nombreCliente']?.toString();
-                  final activo = estado != 'entregado';
+                  final activo = estado != 'entregado' && estado != 'cancelado';;
                   final coincideFiltro = mesaSeleccionada == null || mesaSeleccionada == mesa;
                   return activo && coincideFiltro;
                 }).toList();
 
                 final nuevos = pedidos.where((p) => !pedidosAnteriores.contains(p.id)).toList();
                 if (nuevos.isNotEmpty) {
-                  reproducirSonido(); // solo web
                   pedidosAnteriores = pedidos.map((e) => e.id).toList();
                 }
 
@@ -63,6 +62,7 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage> {
                     final productos = data['productos'] as List;
                     final estado = data['estado'] ?? 'pendiente';
                     final nombres = productos.map((p) => "${p['cantidad']}x ${p['nombre']}").join(", ");
+                    final observacion = data['observacion'] ?? '';
                     final mesa = data['nombreCliente'];
                     final total = data['total'] ?? 0;
 
@@ -87,7 +87,9 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(nombres),
-                            Text("Estado: $estado", style: TextStyle(color: colorEstado)),
+                            if (observacion.isNotEmpty)
+                              Text("📝 $observacion", style: const TextStyle(fontStyle: FontStyle.italic)),
+                            Text("Estado: $estado", style: TextStyle(color: colorEstado))
                           ],
                         ),
                         trailing: _botonEstado(pedido.id, estado),
@@ -103,25 +105,56 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage> {
     );
   }
 
-  Widget? _botonEstado(String docId, String estado) {
+  Widget _botonEstado(String docId, String estado) {
+    List<Widget> botones = [];
+
     if (estado == "pendiente") {
-      return ElevatedButton(
+      botones.add(ElevatedButton(
         onPressed: () => actualizarEstado(docId, "preparando"),
         child: const Text("Preparar"),
-      );
+      ));
     } else if (estado == "preparando") {
-      return ElevatedButton(
+      botones.add(ElevatedButton(
         onPressed: () => actualizarEstado(docId, "listo"),
         child: const Text("Listo"),
-      );
+      ));
     } else if (estado == "listo") {
-      return ElevatedButton(
+      botones.add(ElevatedButton(
         onPressed: () => actualizarEstado(docId, "entregado"),
         child: const Text("Entregado"),
+      ));
+    }
+
+    if (estado != "entregado") {
+      botones.add(const SizedBox(width: 8));
+      botones.add(
+        ElevatedButton(
+          onPressed: () async {
+            final confirmar = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text("Cancelar pedido"),
+                content: const Text("¿Estás seguro que deseas cancelar este pedido?"),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
+                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Sí")),
+                ],
+              ),
+            );
+
+            if (confirmar == true) {
+              await actualizarEstado(docId, "cancelado");
+            }
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text("Cancelar"),
+        ),
       );
     }
-    return null;
+
+    return Row(mainAxisSize: MainAxisSize.min, children: botones);
   }
+
 
   Future<void> actualizarEstado(String docId, String nuevoEstado) async {
     await FirebaseFirestore.instance.collection("pedidos").doc(docId).update({
@@ -145,15 +178,5 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Venta registrada'),
     ));
-  }
-
-
-  void reproducirSonido() {
-    // Solo para Flutter Web
-    try {
-      html.AudioElement()
-        ..src = 'https://www.soundjay.com/button/beep-07.wav'
-        ..autoplay = true;
-    } catch (_) {}
   }
 }
