@@ -18,33 +18,6 @@ class _HomePageState extends State<HomePage> {
   int pedidosActivos = 0;
   int totalProductos = 0;
 
-  Future<void> cargarEstadisticas() async {
-    final hoy = DateTime.now();
-    final inicioHoy = DateTime(hoy.year, hoy.month, hoy.day);
-
-    // Ventas del día
-    final ventasSnap = await FirebaseFirestore.instance
-        .collection('ventas')
-        .where('fecha', isGreaterThan: inicioHoy.toIso8601String())
-        .get();
-
-    // Pedidos activos
-    final pedidosSnap = await FirebaseFirestore.instance
-        .collection('pedidos')
-        .where('estado', whereNotIn: ['entregado', 'cancelado'])
-        .get();
-
-    // Productos
-    final productosSnap = await FirebaseFirestore.instance.collection(
-        'productos').get();
-
-    setState(() {
-      ventasHoy = ventasSnap.docs.length;
-      pedidosActivos = pedidosSnap.docs.length;
-      totalProductos = productosSnap.docs.length;
-    });
-  }
-
   Future<bool> esAdmin(String uid) async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
@@ -67,7 +40,6 @@ class _HomePageState extends State<HomePage> {
     if (uid != null) {
       esAdmin(uid).then((valor) {
         setState(() => _esAdmin = valor);
-        cargarEstadisticas();
       });
     }
   }
@@ -113,6 +85,12 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () =>
                         Navigator.pushNamed(context, '/tomar_pedidos'),
                   ),
+                  _buildCardButton(
+                    icon: Icons.local_bar,
+                    label: 'Ver pedidos',
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/pedidos_time_real'),
+                  ),
                   if (_esAdmin == true)
                     _buildCardButton(
                       icon: Icons.history,
@@ -134,12 +112,6 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () =>
                           Navigator.pushNamed(context, '/registrar'),
                     ),
-                  _buildCardButton(
-                    icon: Icons.local_bar,
-                    label: 'Ver pedidos',
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/pedidos_time_real'),
-                  ),
                 ],
               ),
             ),

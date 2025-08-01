@@ -8,7 +8,6 @@ import 'package:mobile_bar_web/tomar_pedido_page.dart';
 
 import 'agregar_producto_page.dart';
 import 'home_page.dart';
-import 'lista_productos_page.dart';
 import 'login_page.dart';
 
 void main() async {
