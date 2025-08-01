@@ -151,127 +151,137 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
     final nombreController = TextEditingController();
     final precioController = TextEditingController();
     bool activo = true;
-    File? imagenSeleccionada;
-    String? imageUrl;
+    XFile? imagenSeleccionada;
+
+    final ImagePicker _picker = ImagePicker();
 
     await showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(builder: (context, setStateDialog) {
-          Future<void> _seleccionarImagen() async {
-            final picker = ImagePicker();
-            final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-            if (pickedFile != null) {
-              setStateDialog(() {
-                imagenSeleccionada = File(pickedFile.path);
-              });
-            }
-          }
-
-          return AlertDialog(
-            backgroundColor: Colors.grey[850],
-            title: const Text('Agregar producto', style: TextStyle(color: Colors.white)),
-            content: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: _seleccionarImagen,
-                      child: imagenSeleccionada != null
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(imagenSeleccionada!, height: 100),
-                      )
-                          : Container(
-                        height: 100,
-                        width: double.infinity,
-                        color: Colors.grey[700],
-                        alignment: Alignment.center,
-                        child: const Text('Seleccionar imagen', style: TextStyle(color: Colors.white60)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: nombreController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre',
-                        labelStyle: TextStyle(color: Colors.white70),
-                      ),
-                      validator: (value) => value == null || value.isEmpty ? 'Campo requerido' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: precioController,
-                      style: const TextStyle(color: Colors.white),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Precio',
-                        labelStyle: TextStyle(color: Colors.white70),
-                      ),
-                      validator: (value) => value == null || value.isEmpty ? 'Campo requerido' : null,
-                    ),
-                    Row(
-                      children: [
-                        const Text('¿Activo?', style: TextStyle(color: Colors.white70)),
-                        Switch(
-                          value: activo,
-                          onChanged: (val) => setStateDialog(() => activo = val),
-                          activeColor: Colors.greenAccent,
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Colors.grey[850],
+              title: const Text('Agregar producto', style: TextStyle(color: Colors.white)),
+              content: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (imagenSeleccionada != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            imagenSeleccionada!.path,
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final picked = await _picker.pickImage(source: ImageSource.gallery);
+                          if (picked != null) {
+                            setStateDialog(() {
+                              imagenSeleccionada = picked;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.photo_library),
+                        label: const Text("Seleccionar imagen"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurpleAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: nombreController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          labelStyle: TextStyle(color: Colors.white70),
+                        ),
+                        validator: (value) =>
+                        value == null || value.isEmpty ? 'Campo requerido' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: precioController,
+                        style: const TextStyle(color: Colors.white),
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Precio',
+                          labelStyle: TextStyle(color: Colors.white70),
+                        ),
+                        validator: (value) =>
+                        value == null || value.isEmpty ? 'Campo requerido' : null,
+                      ),
+                      Row(
+                        children: [
+                          const Text('¿Activo?', style: TextStyle(color: Colors.white70)),
+                          Switch(
+                            value: activo,
+                            onChanged: (val) => setStateDialog(() => activo = val),
+                            activeColor: Colors.greenAccent,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            actions: [
-              TextButton(
-                child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-                onPressed: () => Navigator.pop(context),
-              ),
-              TextButton(
-                child: const Text('Guardar', style: TextStyle(color: Colors.greenAccent)),
-                onPressed: () async {
-                  if (!_formKey.currentState!.validate()) return;
+              actions: [
+                TextButton(
+                  child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text('Guardar', style: TextStyle(color: Colors.greenAccent)),
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) return;
 
-                  final nombre = nombreController.text.trim();
-                  final precio = double.tryParse(precioController.text.trim());
+                    final nombre = nombreController.text.trim();
+                    final precio = double.tryParse(precioController.text.trim());
 
-                  if (precio == null || precio <= 0) {
+                    if (precio == null || precio <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ingresa un precio válido')),
+                      );
+                      return;
+                    }
+
+                    String? imageUrl;
+                    if (imagenSeleccionada != null) {
+                      final file = File(imagenSeleccionada!.path);
+                      final ref = FirebaseStorage.instance
+                          .ref()
+                          .child('productos/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+                      await ref.putFile(file);
+                      imageUrl = await ref.getDownloadURL();
+                    }
+
+                    await FirebaseFirestore.instance.collection('productos').add({
+                      'nombre': nombre,
+                      'precio': precio,
+                      'activo': activo,
+                      'createdAt': FieldValue.serverTimestamp(),
+                      'imagenUrl': imageUrl,
+                    });
+
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ingresa un precio válido')),
+                      const SnackBar(content: Text('Producto agregado exitosamente')),
                     );
-                    return;
-                  }
 
-                  if (imagenSeleccionada != null) {
-                    final fileName = 'productos/${DateTime.now().millisecondsSinceEpoch}.jpg';
-                    final ref = FirebaseStorage.instance.ref().child(fileName);
-                    await ref.putFile(imagenSeleccionada!);
-                    imageUrl = await ref.getDownloadURL();
-                  }
-
-                  await FirebaseFirestore.instance.collection('productos').add({
-                    'nombre': nombre,
-                    'precio': precio,
-                    'activo': activo,
-                    'imagenUrl': imageUrl ?? '',
-                    'createdAt': FieldValue.serverTimestamp(),
-                  });
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Producto agregado exitosamente')),
-                  );
-
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-        });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }
