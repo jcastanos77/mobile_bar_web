@@ -150,6 +150,18 @@ class _TomarPedidoPageState extends State<TomarPedidoPage> {
                 color: const Color(0xFF1E1E1E),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: producto["imagenUrl"] != null
+                        ? Image.network(
+                      producto["imagenUrl"],
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.white38),
+                    )
+                        : const Icon(Icons.image_not_supported, color: Colors.white38),
+                  ),
                   title: Text(producto["nombre"], style: const TextStyle(color: Colors.white)),
                   subtitle: Text("\$${producto["precio"]}", style: const TextStyle(color: Colors.white60)),
                   trailing: IconButton(
