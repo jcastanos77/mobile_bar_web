@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker_for_web/image_picker_for_web.dart';
+import 'dart:html' as html;
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -81,6 +85,10 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
                         icon: const Icon(Icons.edit, color: Colors.white70),
                         onPressed: () => _editarProducto(context, producto.id, data),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.redAccent),
+                        onPressed: () => _confirmarEliminacion(context, producto.id),
+                      ),
                     ],
                   ),
                 ),
@@ -96,6 +104,34 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
       ),
     );
   }
+
+  void _confirmarEliminacion(BuildContext context, String idProducto) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.grey[850],
+        title: const Text('Eliminar producto', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          '¿Estás seguro de que quieres eliminar este producto?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent)),
+            onPressed: () async {
+              await FirebaseFirestore.instance.collection('productos').doc(idProducto).delete();
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
 
   void _editarProducto(BuildContext context, String id, Map<String, dynamic> data) {
     final nombreController = TextEditingController(text: data['nombre']);
@@ -171,15 +207,25 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          final result = await FilePicker.platform.pickFiles(
-                            type: FileType.image,
-                            withData: true,
-                          );
-                          if (result != null && result.files.single.bytes != null) {
-                            setStateDialog(() {
-                              imagenSeleccionada = result.files.single.bytes;
-                              nombreArchivo = result.files.single.name;
-                            });
+                          if (kIsWeb) {
+                            final bytes = await seleccionarImagenWeb();
+                            if (bytes != null) {
+                              setStateDialog(() {
+                                imagenSeleccionada = bytes;
+                                nombreArchivo = 'imagen_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                              });
+                            }
+                          }else{
+                            final result = await FilePicker.platform.pickFiles(
+                              type: FileType.image,
+                              withData: true,
+                            );
+                            if (result != null && result.files.single.bytes != null) {
+                              setStateDialog(() {
+                                imagenSeleccionada = result.files.single.bytes;
+                                nombreArchivo = result.files.single.name;
+                              });
+                            }
                           }
                         },
                         child: imagenSeleccionada != null
@@ -298,6 +344,24 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
         );
       },
     );
+  }
+
+  Future<Uint8List?> seleccionarImagenWeb() async {
+    final input = html.FileUploadInputElement();
+    input.accept = 'image/*';
+    input.click();
+
+    final completer = Completer<Uint8List?>();
+    input.onChange.listen((event) async {
+      final file = input.files!.first;
+      final reader = html.FileReader();
+      reader.readAsArrayBuffer(file);
+      reader.onLoadEnd.listen((e) {
+        completer.complete(reader.result as Uint8List);
+      });
+    });
+
+    return completer.future;
   }
 
 }
