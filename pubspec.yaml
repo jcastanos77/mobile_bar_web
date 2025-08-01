@@ -39,7 +39,7 @@ dependencies:
   firebase_core: ^2.30.0
   audioplayers: ^5.2.1
   firebase_storage: ^11.6.8
-  image_picker: ^1.0.7
+  file_picker: ^6.1.1
   intl: ^0.18.0
 
 dev_dependencies:

@@ -1,6 +1,7 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -89,7 +90,7 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _mostrarDialogoAgregarProducto,
+        onPressed: () => _mostrarDialogoAgregarProducto(context),
         child: const Icon(Icons.add),
         tooltip: 'Agregar producto',
       ),
@@ -146,14 +147,13 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
     );
   }
 
-  Future<void> _mostrarDialogoAgregarProducto() async {
+  Future<void> _mostrarDialogoAgregarProducto(BuildContext context) async {
     final _formKey = GlobalKey<FormState>();
     final nombreController = TextEditingController();
     final precioController = TextEditingController();
     bool activo = true;
-    XFile? imagenSeleccionada;
-
-    final ImagePicker _picker = ImagePicker();
+    Uint8List? imagenSeleccionada;
+    String? nombreArchivo;
 
     await showDialog(
       context: context,
@@ -169,30 +169,40 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (imagenSeleccionada != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            imagenSeleccionada!.path,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final picked = await _picker.pickImage(source: ImageSource.gallery);
-                          if (picked != null) {
+                      GestureDetector(
+                        onTap: () async {
+                          final result = await FilePicker.platform.pickFiles(
+                            type: FileType.image,
+                            withData: true,
+                          );
+                          if (result != null && result.files.single.bytes != null) {
                             setStateDialog(() {
-                              imagenSeleccionada = picked;
+                              imagenSeleccionada = result.files.single.bytes;
+                              nombreArchivo = result.files.single.name;
                             });
                           }
                         },
-                        icon: const Icon(Icons.photo_library),
-                        label: const Text("Seleccionar imagen"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent,
-                          foregroundColor: Colors.white,
+                        child: imagenSeleccionada != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.memory(
+                            imagenSeleccionada!,
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                            : Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[700],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Seleccionar imagen',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -241,6 +251,12 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
                   child: const Text('Guardar', style: TextStyle(color: Colors.greenAccent)),
                   onPressed: () async {
                     if (!_formKey.currentState!.validate()) return;
+                    if (imagenSeleccionada == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona una imagen')),
+                      );
+                      return;
+                    }
 
                     final nombre = nombreController.text.trim();
                     final precio = double.tryParse(precioController.text.trim());
@@ -252,23 +268,21 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
                       return;
                     }
 
-                    String? imageUrl;
-                    if (imagenSeleccionada != null) {
-                      final file = File(imagenSeleccionada!.path);
-                      final ref = FirebaseStorage.instance
-                          .ref()
-                          .child('productos/${DateTime.now().millisecondsSinceEpoch}.jpg');
+                    // Subir imagen a Firebase Storage
+                    final ref = FirebaseStorage.instance
+                        .ref()
+                        .child('productos/$nombreArchivo');
 
-                      await ref.putFile(file);
-                      imageUrl = await ref.getDownloadURL();
-                    }
+                    await ref.putData(imagenSeleccionada!);
+                    final urlImagen = await ref.getDownloadURL();
 
+                    // Guardar en Firestore
                     await FirebaseFirestore.instance.collection('productos').add({
                       'nombre': nombre,
                       'precio': precio,
                       'activo': activo,
+                      'imagen': urlImagen,
                       'createdAt': FieldValue.serverTimestamp(),
-                      'imagenUrl': imageUrl,
                     });
 
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -285,4 +299,5 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
       },
     );
   }
+
 }
