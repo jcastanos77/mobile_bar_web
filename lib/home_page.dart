@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
                       icon: Icons.add_box,
                       label: 'Agregar producto',
                       onPressed: () =>
-                          Navigator.pushNamed(context, '/agregar_producto'),
+                          Navigator.pushNamed(context, '/productos'),
                     ),
                   if (_esAdmin == true)
                     _buildCardButton(
@@ -134,11 +134,6 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () =>
                           Navigator.pushNamed(context, '/registrar'),
                     ),
-                  _buildCardButton(
-                    icon: Icons.list_alt,
-                    label: 'Ver productos',
-                    onPressed: () => Navigator.pushNamed(context, '/productos'),
-                  ),
                   _buildCardButton(
                     icon: Icons.local_bar,
                     label: 'Ver pedidos',

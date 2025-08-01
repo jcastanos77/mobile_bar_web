@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_bar_web/historial_ventas_page.dart';
 import 'package:mobile_bar_web/pedidos_page.dart';
 import 'package:mobile_bar_web/registrar_usuario_page.dart';
-import 'package:mobile_bar_web/registrar_venta_page.dart';
 import 'package:mobile_bar_web/tomar_pedido_page.dart';
 
 import 'agregar_producto_page.dart';
@@ -44,7 +43,7 @@ class MyApp extends StatelessWidget {
             centerTitle: true,
           ),
           colorScheme: ColorScheme.dark(
-            primary: Colors.tealAccent,
+            primary: Colors.white,
             secondary: Colors.deepPurpleAccent,
           ),
           textTheme: const TextTheme(
@@ -68,14 +67,11 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (_) => LoginPage(),
         '/home': (_) => const HomePage(),
-        '/agregar_producto': (_) => const AgregarProductoPage(),
+        '/productos': (_) => const AgregarProductoPage(),
         '/registrar': (_) => const RegistrarUsuarioPage(),
-        '/productos': (_) => const ListaProductosPage(),
-        '/ventas': (_) => const RegistrarVentaPage(),
         '/historial': (_) => const HistorialVentasPage(),
         '/tomar_pedidos': (_) => const TomarPedidoPage(),
-        '/pedidos_time_real': (_) => const PedidosBartenderPage(),
-
+        '/pedidos_time_real': (_) => const PedidosBartenderPage()
       }
     );
   }
