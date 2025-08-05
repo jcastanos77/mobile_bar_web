@@ -111,7 +111,8 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage>
       final data = doc.data()!;
       final productos = data['productos'] as List<dynamic>;
       final total = data['total'] ?? 0;
-      await guardarVenta(productos, total);
+      final meseroName = data['mesero'];
+      await guardarVenta(productos, total, meseroName);
     }
   }
 
@@ -121,7 +122,7 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage>
     });
   }
 
-  Future<void> guardarVenta(List carrito, int total) async {
+  Future<void> guardarVenta(List carrito, int total, String mesero) async {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) return;
@@ -130,7 +131,7 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage>
       'productos': carrito,
       'total': total,
       'fecha': DateTime.now().toIso8601String(),
-      'vendedorId': user.uid,
+      'mesero': mesero,
       'vendedorEmail': user.email
     });
 

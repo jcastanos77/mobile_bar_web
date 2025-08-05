@@ -106,7 +106,7 @@ class HistorialVentasPage extends StatelessWidget {
                                     const Icon(Icons.person, size: 18, color: Colors.grey),
                                     const SizedBox(width: 6),
                                     Text(
-                                      data['vendedorEmail'] ?? 'Sin email',
+                                      data['mesero'] ?? 'Sin mesero',
                                       style: const TextStyle(color: Colors.grey),
                                     ),
                                   ],

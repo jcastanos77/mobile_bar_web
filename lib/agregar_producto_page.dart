@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:image_picker_for_web/image_picker_for_web.dart';
 import 'dart:html' as html;
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -295,48 +296,48 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
                 ),
                 TextButton(
                   child: const Text('Guardar', style: TextStyle(color: Colors.greenAccent)),
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
-                    if (imagenSeleccionada == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Selecciona una imagen')),
-                      );
-                      return;
+                    onPressed: () async {
+
+                      if (!_formKey.currentState!.validate()) return;
+                      if (imagenSeleccionada == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Selecciona una imagen')),
+                        );
+                        return;
+                      }
+
+                      final nombre = nombreController.text.trim();
+                      final precio = double.tryParse(precioController.text.trim());
+
+                      if (precio == null || precio <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ingresa un precio válido')),
+                        );
+                        return;
+                      }
+
+                      try {
+                        final nombreImage = await subirImagenACloudinary(imagenSeleccionada!);
+
+                        await FirebaseFirestore.instance.collection('productos').add({
+                          'nombre': nombre,
+                          'precio': precio,
+                          'activo': activo,
+                          'imagen': nombreImage,
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Producto agregado exitosamente')),
+                        );
+
+                        Navigator.pop(context);
+                      } catch (e, s) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ocurrió un error al guardar el producto')),
+                        );
+                      }
                     }
-
-                    final nombre = nombreController.text.trim();
-                    final precio = double.tryParse(precioController.text.trim());
-
-                    if (precio == null || precio <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Ingresa un precio válido')),
-                      );
-                      return;
-                    }
-
-                    // Subir imagen a Firebase Storage
-                    final ref = FirebaseStorage.instance
-                        .ref()
-                        .child('productos/$nombreArchivo');
-
-                    await ref.putData(imagenSeleccionada!);
-                    final urlImagen = await ref.getDownloadURL();
-
-                    // Guardar en Firestore
-                    await FirebaseFirestore.instance.collection('productos').add({
-                      'nombre': nombre,
-                      'precio': precio,
-                      'activo': activo,
-                      'imagen': urlImagen,
-                      'createdAt': FieldValue.serverTimestamp(),
-                    });
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Producto agregado exitosamente')),
-                    );
-
-                    Navigator.pop(context);
-                  },
                 ),
               ],
             );
@@ -347,21 +348,59 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
   }
 
   Future<Uint8List?> seleccionarImagenWeb() async {
-    final input = html.FileUploadInputElement();
-    input.accept = 'image/*';
-    input.click();
-
     final completer = Completer<Uint8List?>();
-    input.onChange.listen((event) async {
-      final file = input.files!.first;
+
+    final input = html.FileUploadInputElement()
+      ..accept = 'image/*'
+      ..style.display = 'none';
+
+    html.document.body!.append(input);
+
+    input.onChange.listen((event) {
+      final file = input.files?.first;
+      if (file == null) {
+        completer.complete(null);
+        return;
+      }
+
       final reader = html.FileReader();
       reader.readAsArrayBuffer(file);
       reader.onLoadEnd.listen((e) {
         completer.complete(reader.result as Uint8List);
+        input.remove();
       });
     });
 
+    input.click();
+
     return completer.future;
+  }
+
+  Future<String?> subirImagenACloudinary(Uint8List imagenBytes) async {
+    const cloudName = 'dawddzadq';
+    const uploadPreset = 'mobile_bar_web';
+
+    final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['upload_preset'] = uploadPreset
+      ..files.add(http.MultipartFile.fromBytes(
+        'file',
+        imagenBytes,
+        filename: 'imagen_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      ));
+
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      final data = json.decode(responseBody);
+      return data['secure_url'];
+    } else {
+      print('Error al subir imagen: ${response.statusCode}');
+      print(responseBody);
+      return null;
+    }
   }
 
 }

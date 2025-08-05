@@ -69,7 +69,7 @@ class MyApp extends StatelessWidget {
         '/productos': (_) => const AgregarProductoPage(),
         '/registrar': (_) => const RegistrarUsuarioPage(),
         '/historial': (_) => const HistorialVentasPage(),
-        '/tomar_pedidos': (_) => const TomarPedidoPage(),
+        '/tomar_pedidos': (_) => const TomarPedidoScreen(),
         '/pedidos_time_real': (_) => const PedidosBartenderPage()
       }
     );
