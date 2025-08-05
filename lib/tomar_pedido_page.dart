@@ -151,7 +151,7 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
           children: [
             Expanded(
               child: Column(
@@ -159,78 +159,96 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                 children: [
                   const Text("Productos Disponibles", style: TextStyle(fontSize: 18, color: Colors.white)),
                   const SizedBox(height: 8),
+
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: productosDisponibles.length,
-                      itemBuilder: (_, index) {
-                        final producto = productosDisponibles[index];
-                        return Card(
-                          color: Colors.grey[900],
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 4,
-                          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                // Imagen del producto
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: producto["imagen"] != null
-                                      ? Image.network(
-                                    producto["imagen"],
-                                    height: 150,
-                                    width: 150,
-                                    fit: BoxFit.cover,
-                                  )
-                                      : Container(
-                                    height: 60,
-                                    width: 60,
-                                    color: Colors.grey[800],
-                                    child: const Icon(Icons.image_not_supported, color: Colors.white54),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                // Nombre y precio
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        producto["nombre"] ?? "",
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        "Precio: \$${producto["precio"]}",
-                                        style: const TextStyle(fontSize: 14, color: Colors.white70),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Botón + contador
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        const double itemWidth = 160;
+
+                        int crossAxisCount = (constraints.maxWidth / itemWidth).floor();
+
+                        if (crossAxisCount < 2) crossAxisCount = 2;
+
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(8),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 1.1,
+                          ),
+                          itemCount: productosDisponibles.length,
+                          itemBuilder: (_, index) {
+                            final producto = productosDisponibles[index];
+                            return Card(
+                              color: Colors.grey[900],
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              elevation: 3,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (carrito[producto["id"]] != null)
-                                      CircleAvatar(
-                                        backgroundColor: Colors.tealAccent,
-                                        radius: 12,
-                                        child: Text(
-                                          carrito[producto["id"]].toString(),
-                                          style: const TextStyle(fontSize: 12, color: Colors.black),
-                                        ),
+                                    // Imagen
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: producto["imagen"] != null
+                                          ? Image.network(
+                                        producto["imagen"],
+                                        height: 80,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      )
+                                          : Container(
+                                        height: 80,
+                                        width: double.infinity,
+                                        color: Colors.grey[800],
+                                        child: const Icon(Icons.image_not_supported, color: Colors.white54),
                                       ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle, color: Colors.tealAccent),
-                                      onPressed: () => agregarProducto(producto["id"]),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    // Nombre + contador + botón
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            producto["nombre"] ?? "",
+                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (carrito[producto["id"]] != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 4),
+                                            child: CircleAvatar(
+                                              backgroundColor: Colors.tealAccent,
+                                              radius: 10,
+                                              child: Text(
+                                                carrito[producto["id"]].toString(),
+                                                style: const TextStyle(fontSize: 10, color: Colors.black),
+                                              ),
+                                            ),
+                                          ),
+                                        IconButton(
+                                          icon: const Icon(Icons.add_circle, color: Colors.tealAccent, size: 20),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          onPressed: () => agregarProducto(producto["id"]),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      "Precio: \$${producto["precio"]}",
+                                      style: const TextStyle(fontSize: 12, color: Colors.white70),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -238,48 +256,47 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                 ],
               ),
             ),
-            const VerticalDivider(width: 32),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Carrito", style: TextStyle(fontSize: 18, color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView(
-                      children: carrito.entries.map((entry) {
-                        final producto = productosDisponibles.firstWhere((p) => p["id"] == entry.key);
-                        return ListTile(
-                          title: Text(producto["nombre"] ?? "", style: const TextStyle(color: Colors.white)),
-                          subtitle: Text("Cantidad: ${entry.value}  x  \$${producto["precio"]}", style: const TextStyle(color: Colors.white70)),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
-                            onPressed: () => quitarProducto(entry.key),
-                          ),
-                        );
-                      }).toList(),
+            const Divider(),
+            const SizedBox(height: 12),
+            const Text("Carrito", style: TextStyle(fontSize: 18, color: Colors.white)),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 90,
+              child: ListView(
+                children: carrito.entries.map((entry) {
+                  final producto = productosDisponibles.firstWhere((p) => p["id"] == entry.key);
+                  return ListTile(
+                    title: Text(producto["nombre"] ?? "", style: const TextStyle(color: Colors.white)),
+                    subtitle: Text("Cantidad: ${entry.value}  x  \$${producto["precio"]}", style: const TextStyle(color: Colors.white70)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                      onPressed: () => quitarProducto(entry.key),
                     ),
-                  ),
-                  TextField(
-                    controller: nombreClienteController,
-                    style: TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: "Nombre del cliente"),
-                  ),
-                  TextField(
-                    style: TextStyle(color: Colors.white),
-                    controller: observacionesController,
-                    decoration: const InputDecoration(labelText: "Observaciones"),
-                  ),
-                  const SizedBox(height: 8),
-                  Text("Total: \$${calcularTotal().toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, color: Colors.white)),
-                  const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: enviarPedido,
-                    icon: const Icon(Icons.send),
-                    label: const Text("Enviar Pedido"),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                  ),
-                ],
+                  );
+                }).toList(),
+              ),
+            ),
+            TextField(
+              controller: nombreClienteController,
+              style: TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: "Nombre del cliente"),
+            ),
+            TextField(
+              style: TextStyle(color: Colors.white),
+              controller: observacionesController,
+              decoration: const InputDecoration(labelText: "Observaciones"),
+            ),
+            const SizedBox(height: 8),
+            Text("Total: \$${calcularTotal().toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, color: Colors.white)),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 50,
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: enviarPedido,
+                icon: const Icon(Icons.send),
+                label: const Text("Enviar Pedido"),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
               ),
             ),
           ],
