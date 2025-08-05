@@ -112,7 +112,7 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
       }).toList();
 
       await FirebaseFirestore.instance.collection("pedidos").add({
-        "cliente": nombreClienteController.text.trim(),
+        "nombreCliente": nombreClienteController.text.trim(),
         "productos": productos,
         "observaciones": observacionesController.text.trim(),
         "estado": "pendiente",

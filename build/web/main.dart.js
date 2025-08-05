@@ -90647,7 +90647,7 @@ g=B.c.dT(m.e.a.a)
 f=A.aDv("yyyy-MM-dd HH:mm:ss").uL(new A.cT(Date.now(),0,!1))
 e=$.ayp().w7()
 s=8
-return A.L(c.E(0,A.ar(["cliente",k,"productos",l,"observaciones",g,"estado","pendiente","fecha",f,"timestamp",new A.ln(e,e),"total",m.Gd(),"mesero",m.y],t.N,j)),$async$uq)
+return A.L(c.E(0,A.ar(["nombreCliente",k,"productos",l,"observaciones",g,"estado","pendiente","fecha",f,"timestamp",new A.ln(e,e),"total",m.Gd(),"mesero",m.y],t.N,j)),$async$uq)
 case 8:m.a8(new A.aw2(m))
 m.c.ai(t.Pu).f.jJ(B.QE)
 n.push(7)
