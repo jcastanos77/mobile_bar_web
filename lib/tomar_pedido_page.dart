@@ -160,7 +160,6 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                 children: [
                   const Text("Productos Disponibles", style: TextStyle(fontSize: 18, color: Colors.white)),
                   const SizedBox(height: 8),
-
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -176,12 +175,13 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                             crossAxisCount: crossAxisCount,
                             mainAxisSpacing: 8,
                             crossAxisSpacing: 8,
-                            childAspectRatio: 1,
+                            childAspectRatio: 1.0,
                           ),
                           itemCount: productosDisponibles.length,
                           itemBuilder: (_, index) {
                             final producto = productosDisponibles[index];
                             return Card(
+                              clipBehavior: Clip.hardEdge,
                               color: Colors.grey[800],
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               elevation: 3,
@@ -221,39 +221,42 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                                     ),
                                     const SizedBox(height: 5),
                                     Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.remove_circle, color: Colors.tealAccent),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    final current = carrito[producto["id"]];
+                                                    if (current == 1) {
+                                                      carrito.remove(producto["id"]);
+                                                    } else {
+                                                      carrito[producto["id"]] = (current! - 1).toInt();
+                                                    }
+                                                  });
+                                                },
+                                              ),
+                                              CircleAvatar(
+                                                backgroundColor: Colors.tealAccent,
+                                                radius: 12,
+                                                child: Text(
+                                                  carrito[producto["id"]].toString() == "null" ? "0" : carrito[producto["id"]].toString(),
+                                                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                                                ),
+                                              ),
                                             IconButton(
-                                              icon: const Icon(Icons.remove_circle, color: Colors.tealAccent),
+                                              icon: const Icon(Icons.add_circle, color: Colors.tealAccent),
                                               onPressed: () {
                                                 setState(() {
-                                                  final current = carrito[producto["id"]];
-                                                  if (current == 1) {
-                                                    carrito.remove(producto["id"]);
-                                                  } else {
-                                                    carrito[producto["id"]] = (current! - 1).toInt();
-                                                  }
+                                                  carrito[producto["id"]] = (carrito[producto["id"]] ?? 0) + 1;
                                                 });
                                               },
                                             ),
-                                            CircleAvatar(
-                                              backgroundColor: Colors.tealAccent,
-                                              radius: 12,
-                                              child: Text(
-                                                carrito[producto["id"]].toString() == "null" ? "0" : carrito[producto["id"]].toString(),
-                                                style: const TextStyle(fontSize: 12, color: Colors.black),
-                                              ),
-                                            ),
-                                          IconButton(
-                                            icon: const Icon(Icons.add_circle, color: Colors.tealAccent),
-                                            onPressed: () {
-                                              setState(() {
-                                                carrito[producto["id"]] = (carrito[producto["id"]] ?? 0) + 1;
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -269,7 +272,7 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
               ),
             ),
             const Divider(),
-            const SizedBox(height: 12),
+            const SizedBox(height: 5),
             Row(
               children: [
                 Text("Carrito", style: TextStyle(fontSize: 18, color: Colors.white)),
