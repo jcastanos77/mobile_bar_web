@@ -75,44 +75,51 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  _buildCardButton(
-                    icon: Icons.add_shopping_cart,
-                    label: 'Tomar pedidos',
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/tomar_pedidos'),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _buildCardButton(
+                          icon: Icons.add_shopping_cart,
+                          label: 'Tomar pedidos',
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/tomar_pedidos'),
+                        ),
+                        _buildCardButton(
+                          icon: Icons.local_bar,
+                          label: 'Ver pedidos',
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/pedidos_time_real'),
+                        ),
+                        if (_esAdmin == true)
+                          _buildCardButton(
+                            icon: Icons.history,
+                            label: 'Historial ventas',
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/historial'),
+                          ),
+                        if (_esAdmin == true)
+                          _buildCardButton(
+                            icon: Icons.add_box,
+                            label: 'Agregar producto',
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/productos'),
+                          ),
+                        if (_esAdmin == true)
+                          _buildCardButton(
+                            icon: Icons.person_add,
+                            label: 'Registrar usuario',
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/registrar'),
+                          ),
+                      ],
+                    ),
                   ),
-                  _buildCardButton(
-                    icon: Icons.local_bar,
-                    label: 'Ver pedidos',
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/pedidos_time_real'),
-                  ),
-                  if (_esAdmin == true)
-                    _buildCardButton(
-                      icon: Icons.history,
-                      label: 'Historial ventas',
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/historial'),
-                    ),
-                  if (_esAdmin == true)
-                    _buildCardButton(
-                      icon: Icons.add_box,
-                      label: 'Agregar producto',
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/productos'),
-                    ),
-                  if (_esAdmin == true)
-                    _buildCardButton(
-                      icon: Icons.person_add,
-                      label: 'Registrar usuario',
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/registrar'),
-                    ),
-                ],
+                ),
               ),
             ),
           ],
