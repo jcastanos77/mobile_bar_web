@@ -17,7 +17,9 @@ class _PedidosBartenderPageState extends State<PedidosBartenderPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Pedidos en Tiempo Real")),
+      appBar: AppBar(
+          backgroundColor: Colors.teal,
+          title: const Text("Pedidos en Tiempo Real")),
       body: Column(
         children: [
           const SizedBox(height: 8),

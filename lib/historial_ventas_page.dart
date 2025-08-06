@@ -13,7 +13,9 @@ class HistorialVentasPage extends StatelessWidget {
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Historial de Ventas")),
+      appBar: AppBar(
+
+          title: const Text("Historial de Ventas")),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('ventas')
@@ -80,6 +82,7 @@ class HistorialVentasPage extends StatelessWidget {
                     final fechaVenta = DateTime.tryParse(data['fecha'] ?? '') ?? hoy;
 
                     return Card(
+                      color: Colors.grey[800],
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 3,
                       child: Padding(
@@ -90,12 +93,12 @@ class HistorialVentasPage extends StatelessWidget {
                             Text(
                               "Venta: \$${(data['total'] ?? 0).toStringAsFixed(2)}",
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18),
+                                  fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               "Productos: $nombresConCantidad",
-                              style: const TextStyle(color: Colors.black87),
+                              style: const TextStyle(color: Colors.white),
                             ),
                             const SizedBox(height: 8),
                             Row(

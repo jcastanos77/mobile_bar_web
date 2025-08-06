@@ -65,7 +65,9 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar nuevo usuario')),
+      appBar: AppBar(
+          backgroundColor: Colors.teal,
+          title: const Text('Registrar nuevo usuario')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -116,10 +118,15 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
               const SizedBox(height: 20),
               _cargando
                   ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                onPressed: _registrarUsuario,
-                child: const Text('Registrar'),
-              ),
+                  : SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                                    onPressed: _registrarUsuario,
+                                    child: const Text('Registrar'),
+                                  ),
+                  ),
             ],
           ),
         ),
