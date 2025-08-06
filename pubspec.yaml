@@ -45,6 +45,13 @@ dependencies:
   cloudinary_url_gen: ^1.0.0
   http: ^0.13.6
   intl: ^0.18.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+
 
 dev_dependencies:
   flutter_test:
