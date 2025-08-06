@@ -175,7 +175,7 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                             crossAxisCount: crossAxisCount,
                             mainAxisSpacing: 8,
                             crossAxisSpacing: 8,
-                            childAspectRatio: 1.0,
+                            childAspectRatio: 0.75,
                           ),
                           itemCount: productosDisponibles.length,
                           itemBuilder: (_, index) {
@@ -221,42 +221,39 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                                     ),
                                     const SizedBox(height: 5),
                                     Center(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                              IconButton(
-                                                icon: const Icon(Icons.remove_circle, color: Colors.tealAccent),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    final current = carrito[producto["id"]];
-                                                    if (current == 1) {
-                                                      carrito.remove(producto["id"]);
-                                                    } else {
-                                                      carrito[producto["id"]] = (current! - 1).toInt();
-                                                    }
-                                                  });
-                                                },
-                                              ),
-                                              CircleAvatar(
-                                                backgroundColor: Colors.tealAccent,
-                                                radius: 12,
-                                                child: Text(
-                                                  carrito[producto["id"]].toString() == "null" ? "0" : carrito[producto["id"]].toString(),
-                                                  style: const TextStyle(fontSize: 12, color: Colors.black),
-                                                ),
-                                              ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
                                             IconButton(
-                                              icon: const Icon(Icons.add_circle, color: Colors.tealAccent),
+                                              icon: const Icon(Icons.remove_circle, color: Colors.tealAccent),
                                               onPressed: () {
                                                 setState(() {
-                                                  carrito[producto["id"]] = (carrito[producto["id"]] ?? 0) + 1;
+                                                  final current = carrito[producto["id"]];
+                                                  if (current == 1) {
+                                                    carrito.remove(producto["id"]);
+                                                  } else {
+                                                    carrito[producto["id"]] = (current! - 1).toInt();
+                                                  }
                                                 });
                                               },
                                             ),
-                                          ],
-                                        ),
+                                            CircleAvatar(
+                                              backgroundColor: Colors.tealAccent,
+                                              radius: 12,
+                                              child: Text(
+                                                carrito[producto["id"]].toString() == "null" ? "0" : carrito[producto["id"]].toString(),
+                                                style: const TextStyle(fontSize: 12, color: Colors.black),
+                                              ),
+                                            ),
+                                          IconButton(
+                                            icon: const Icon(Icons.add_circle, color: Colors.tealAccent),
+                                            onPressed: () {
+                                              setState(() {
+                                                carrito[producto["id"]] = (carrito[producto["id"]] ?? 0) + 1;
+                                              });
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
