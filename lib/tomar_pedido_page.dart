@@ -79,8 +79,15 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
 
   Future<void> enviarPedido() async {
     if (carrito.isEmpty || nombreClienteController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todos los campos")),
+       await showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Completa todos los campos"),
+          content: Text("Los datos estan incompletos"),
+          actions: [
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Aceptar")),
+          ],
+        ),
       );
       return;
     }
@@ -144,25 +151,41 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
   void mostrarDetalleCarrito() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      isScrollControlled: true,
+      backgroundColor: Colors.grey[800],
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: carrito.isEmpty
-              ? const Center(
-            child: Text(
-              "Tu carrito está vacío",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-          )
-              : Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Cierra el modal
+                    },
+                  ),
+                ],
+              ),
               const Text("Tu Pedido", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
+              TextField(
+                controller: nombreClienteController,
+                style: TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: "Nombre del cliente"),
+              ),
+              TextField(
+                style: TextStyle(color: Colors.white),
+                controller: observacionesController,
+                decoration: const InputDecoration(labelText: "Observaciones"),
+              ),
+              const SizedBox(height: 8),
             ...carrito.entries.expand((entry) {
           final producto = productosDisponibles.firstWhere(
                 (p) => p["id"] == entry.key,
@@ -220,17 +243,6 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: nombreClienteController,
-                    style: TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: "Nombre del cliente"),
-                  ),
-                  TextField(
-                    style: TextStyle(color: Colors.white),
-                    controller: observacionesController,
-                    decoration: const InputDecoration(labelText: "Observaciones"),
-                  ),
                   const SizedBox(height: 8),
                   const Text("Productos Disponibles", style: TextStyle(fontSize: 18, color: Colors.white)),
                   const SizedBox(height: 8),
