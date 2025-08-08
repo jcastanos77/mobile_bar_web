@@ -75,6 +75,7 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
           child: Column(
             children: [
               TextFormField(
+                style: TextStyle(color: Colors.white),
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Correo'),
                 validator: (value) =>
@@ -82,6 +83,7 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                style: TextStyle(color: Colors.white),
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Contraseña'),
@@ -91,6 +93,7 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                style: TextStyle(color: Colors.white),
                 controller: _nombreController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
                 validator: (value) => value != null && value.length >= 3
@@ -99,6 +102,7 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                style: TextStyle(color: Colors.white),
                 controller: _apellidoController,
                 decoration: const InputDecoration(labelText: 'Apellido'),
                 validator: (value) => value != null && value.length >= 3

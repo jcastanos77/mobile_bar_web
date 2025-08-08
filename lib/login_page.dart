@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_bar_web/home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -121,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text.trim(),
       );
       if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+      context.go('/home');
     } on FirebaseAuthException catch (e) {
       setState(() {
         error = _errorMessage(e.code);

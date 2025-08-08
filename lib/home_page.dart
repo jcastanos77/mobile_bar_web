@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -55,7 +56,7 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacementNamed(context, '/login');
+              context.go('/login');
             },
           ),
         ],
@@ -87,34 +88,30 @@ class _HomePageState extends State<HomePage> {
                           icon: Icons.add_shopping_cart,
                           label: 'Tomar pedidos',
                           onPressed: () =>
-                              Navigator.pushNamed(context, '/tomar_pedidos'),
+                              context.go('/tomar_pedidos')
                         ),
                         _buildCardButton(
                           icon: Icons.local_bar,
                           label: 'Ver pedidos',
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/pedidos_time_real'),
+                          onPressed: () => context.go('/pedidos_time_real')
                         ),
                         if (_esAdmin == true)
                           _buildCardButton(
                             icon: Icons.history,
                             label: 'Historial ventas',
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/historial'),
+                            onPressed: () => context.go('/historial')
                           ),
                         if (_esAdmin == true)
                           _buildCardButton(
                             icon: Icons.add_box,
                             label: 'Agregar producto',
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/productos'),
+                            onPressed: () => context.go('/productos')
                           ),
                         if (_esAdmin == true)
                           _buildCardButton(
                             icon: Icons.person_add,
                             label: 'Registrar usuario',
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/registrar'),
+                            onPressed: () => context.go('/registrar')
                           ),
                       ],
                     ),

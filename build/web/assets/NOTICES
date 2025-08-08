@@ -1775,6 +1775,7 @@ THE SOFTWARE.
 --------------------------------------------------------------------------------
 args
 csslib
+logging
 
 Copyright 2013, the Dart project authors. 
 
@@ -2801,6 +2802,7 @@ SUCH DAMAGE.
 cross_file
 flutter_lints
 flutter_plugin_android_lifecycle
+go_router
 image_picker_for_web
 image_picker_platform_interface
 path_provider
