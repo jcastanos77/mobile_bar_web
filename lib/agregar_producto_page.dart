@@ -34,7 +34,9 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white,),
             onPressed: () {
-              context.pop();
+              if (GoRouter.of(context).canPop()) {
+                context.pop();
+              }
             },
           ),
           backgroundColor: Colors.teal,

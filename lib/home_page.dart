@@ -88,30 +88,30 @@ class _HomePageState extends State<HomePage> {
                           icon: Icons.add_shopping_cart,
                           label: 'Tomar pedidos',
                           onPressed: () =>
-                              context.go('/tomar_pedidos')
+                              context.push('/tomar_pedidos')
                         ),
                         _buildCardButton(
                           icon: Icons.local_bar,
                           label: 'Ver pedidos',
-                          onPressed: () => context.go('/pedidos_time_real')
+                          onPressed: () => context.push('/pedidos_time_real')
                         ),
                         if (_esAdmin == true)
                           _buildCardButton(
                             icon: Icons.history,
                             label: 'Historial ventas',
-                            onPressed: () => context.go('/historial')
+                            onPressed: () => context.push('/historial')
                           ),
                         if (_esAdmin == true)
                           _buildCardButton(
                             icon: Icons.add_box,
                             label: 'Agregar producto',
-                            onPressed: () => context.go('/productos')
+                            onPressed: () => context.push('/productos')
                           ),
                         if (_esAdmin == true)
                           _buildCardButton(
                             icon: Icons.person_add,
                             label: 'Registrar usuario',
-                            onPressed: () => context.go('/registrar')
+                            onPressed: () => context.push('/registrar')
                           ),
                       ],
                     ),
