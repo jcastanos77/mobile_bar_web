@@ -29,7 +29,9 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
   }
 
   Future<void> cargarProductos() async {
-    final snapshot = await FirebaseFirestore.instance.collection("productos").get();
+    final snapshot = await FirebaseFirestore.instance
+        .collection("productos")
+        .get();
 
     setState(() {
       productosDisponibles = snapshot.docs
@@ -45,15 +47,16 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
     });
   }
 
-  void quitarProducto(String id) {
+  void quitarProducto(String id, {bool eliminarTodo = false}) {
     setState(() {
       if (carrito.containsKey(id)) {
-        if (carrito[id]! > 1) {
-          carrito[id] = carrito[id]! - 1;
-        } else {
+        if (eliminarTodo || carrito[id]! <= 1) {
           carrito.remove(id);
+        } else {
+          carrito[id] = carrito[id]! - 1;
         }
       }
+      calcularTotal();
     });
   }
 
@@ -82,13 +85,16 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
 
   Future<void> enviarPedido() async {
     if (carrito.isEmpty || nombreClienteController.text.trim().isEmpty) {
-       await showDialog(
+      await showDialog(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text("Completa todos los campos"),
           content: Text("Los datos estan incompletos"),
           actions: [
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Aceptar")),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Aceptar"),
+            ),
           ],
         ),
       );
@@ -101,8 +107,14 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
         title: const Text("¿Confirmar pedido?"),
         content: Text("Total a pagar: \$${calcularTotal().toStringAsFixed(2)}"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancelar")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Confirmar")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Confirmar"),
+          ),
         ],
       ),
     );
@@ -113,7 +125,9 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
 
     try {
       final productos = carrito.entries.map((entry) {
-        final producto = productosDisponibles.firstWhere((p) => p["id"] == entry.key);
+        final producto = productosDisponibles.firstWhere(
+          (p) => p["id"] == entry.key,
+        );
         return {
           "nombre": producto["nombre"],
           "cantidad": entry.value,
@@ -143,9 +157,9 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
       );
       Navigator.of(context).pop();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al enviar pedido: \$e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error al enviar pedido: \$e")));
     } finally {
       setState(() => cargando = false);
     }
@@ -160,69 +174,104 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Cierra el modal
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    "Tu Pedido",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nombreClienteController,
+                    style: TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: "Nombre del cliente",
+                    ),
+                  ),
+                  TextField(
+                    style: TextStyle(color: Colors.white),
+                    controller: observacionesController,
+                    decoration: const InputDecoration(
+                      labelText: "Observaciones",
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...carrito.entries.map((entry) {
+                    final producto = productosDisponibles.firstWhere(
+                      (p) => p["id"] == entry.key,
+                    );
+
+                    return Dismissible(
+                      key: Key(producto["id"]),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (_) {
+                        setModalState(() {
+                          quitarProducto(entry.key, eliminarTodo: true);
+                        });
+                      },
+                      child: ListTile(
+                        title: Text(
+                          producto["nombre"],
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          "Cantidad: ${entry.value}",
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                        trailing: Text(
+                          "\$${(producto["precio"] * entry.value).toStringAsFixed(2)}",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 8),
+                  Text(
+                    "Total: \$${calcularTotal().toStringAsFixed(2)}",
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: enviarPedido,
+                      icon: const Icon(Icons.send),
+                      label: const Text("Enviar Pedido"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const Text("Tu Pedido", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nombreClienteController,
-                style: TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: "Nombre del cliente"),
-              ),
-              TextField(
-                style: TextStyle(color: Colors.white),
-                controller: observacionesController,
-                decoration: const InputDecoration(labelText: "Observaciones"),
-              ),
-              const SizedBox(height: 8),
-            ...carrito.entries.expand((entry) {
-          final producto = productosDisponibles.firstWhere(
-                (p) => p["id"] == entry.key,
-            orElse:() => <String, dynamic>{},
-          );
-
-          if (producto == null) return [];
-
-          return [
-            ListTile(
-              title: Text(producto["nombre"], style: const TextStyle(color: Colors.white)),
-              subtitle: Text("Cantidad: ${entry.value}", style: const TextStyle(color: Colors.white70)),
-              trailing: Text(
-                "\$${(producto["precio"] * entry.value).toStringAsFixed(2)}",
-                style: const TextStyle(color: Colors.white),
-              ),
-            )
-          ];
-        }),
-              const SizedBox(height: 8),
-              Text("Total: \$${calcularTotal().toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, color: Colors.white)),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 50,
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: enviarPedido,
-                  icon: const Icon(Icons.send),
-                  label: const Text("Enviar Pedido"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -234,7 +283,7 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white,),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             context.pop();
           },
@@ -245,135 +294,183 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
-                  const Text("Productos Disponibles", style: TextStyle(fontSize: 18, color: Colors.white)),
-                  const SizedBox(height: 8),
                   Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        const double itemWidth = 160;
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Productos Disponibles",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              const double itemWidth = 160;
 
-                        int crossAxisCount = (constraints.maxWidth / itemWidth).floor();
+                              int crossAxisCount =
+                                  (constraints.maxWidth / itemWidth).floor();
 
-                        if (crossAxisCount < 2) crossAxisCount = 2;
+                              if (crossAxisCount < 2) crossAxisCount = 2;
 
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(8),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 0.75,
-                          ),
-                          itemCount: productosDisponibles.length,
-                          itemBuilder: (_, index) {
-                            final producto = productosDisponibles[index];
-
-                            return Card(
-                              clipBehavior: Clip.hardEdge,
-                              color: Colors.grey[800],
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              elevation: 3,
-                              child: Padding(
+                              return GridView.builder(
                                 padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    // Imagen
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: producto["imagen"] != null
-                                          ? Image.network(
-                                        producto["imagen"],
-                                        height: 100,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      )
-                                          : Container(
-                                        height: 100,
-                                        width: double.infinity,
-                                        color: Colors.grey[800],
-                                        child: const Icon(Icons.image_not_supported, color: Colors.white54),
-                                      ),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      mainAxisSpacing: 8,
+                                      crossAxisSpacing: 8,
+                                      childAspectRatio: 0.75,
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      producto["nombre"] ?? "",
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                itemCount: productosDisponibles.length,
+                                itemBuilder: (_, index) {
+                                  final producto = productosDisponibles[index];
+
+                                  return Card(
+                                    clipBehavior: Clip.hardEdge,
+                                    color: Colors.grey[800],
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      "Precio: \$${producto["precio"]}",
-                                      style: const TextStyle(fontSize: 12, color: Colors.white70),
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                    elevation: 3,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.remove_circle, color: Colors.tealAccent),
-                                              onPressed: () {
-                                                setState(() {
-                                                  final current = carrito[producto["id"]];
-                                                  if (current == 1) {
-                                                    carrito.remove(producto["id"]);
-                                                  } else {
-                                                    carrito[producto["id"]] = (current! - 1).toInt();
-                                                  }
-                                                });
-                                              },
+                                          // Imagen
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
                                             ),
-                                            CircleAvatar(
-                                              backgroundColor: Colors.tealAccent,
-                                              radius: 12,
-                                              child: Text(
-                                                carrito[producto["id"]].toString() == "null" ? "0" : carrito[producto["id"]].toString(),
-                                                style: const TextStyle(fontSize: 12, color: Colors.black),
-                                              ),
+                                            child: producto["imagen"] != null
+                                                ? Image.network(
+                                                    producto["imagen"],
+                                                    height: 100,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Container(
+                                                    height: 100,
+                                                    width: double.infinity,
+                                                    color: Colors.grey[800],
+                                                    child: const Icon(
+                                                      Icons.image_not_supported,
+                                                      color: Colors.white54,
+                                                    ),
+                                                  ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            producto["nombre"] ?? "",
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
                                             ),
-                                          IconButton(
-                                            icon: const Icon(Icons.add_circle, color: Colors.tealAccent),
-                                            onPressed: () {
-                                              setState(() {
-                                                carrito[producto["id"]] = (carrito[producto["id"]] ?? 0) + 1;
-                                              });
-                                            },
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            "Precio: \$${producto["precio"]}",
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Center(
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.remove_circle,
+                                                    color: Colors.tealAccent,
+                                                  ),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      final current =
+                                                          carrito[producto["id"]];
+                                                      if (current == 1) {
+                                                        carrito.remove(
+                                                          producto["id"],
+                                                        );
+                                                      } else {
+                                                        carrito[producto["id"]] =
+                                                            (current! - 1)
+                                                                .toInt();
+                                                      }
+                                                    });
+                                                  },
+                                                ),
+                                                CircleAvatar(
+                                                  backgroundColor:
+                                                      Colors.tealAccent,
+                                                  radius: 12,
+                                                  child: Text(
+                                                    carrito[producto["id"]]
+                                                                .toString() ==
+                                                            "null"
+                                                        ? "0"
+                                                        : carrito[producto["id"]]
+                                                              .toString(),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.add_circle,
+                                                    color: Colors.tealAccent,
+                                                  ),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      carrito[producto["id"]] =
+                                                          (carrito[producto["id"]] ??
+                                                              0) +
+                                                          1;
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
-           const SizedBox(height: 16),
-          ],
-        ),
-      ),
-      floatingActionButton: carrito.isEmpty ? null : FloatingActionButton.extended(
-        onPressed: mostrarDetalleCarrito,
-        icon: const Icon(Icons.shopping_cart, color: Colors.white,),
-        label: Text('${carrito.values.reduce((a, b) => a + b)} productos', style: TextStyle(color: Colors.white),),
-        backgroundColor: Colors.teal,
-      ),
+      floatingActionButton: carrito.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: mostrarDetalleCarrito,
+              icon: const Icon(Icons.shopping_cart, color: Colors.white),
+              label: Text(
+                '${carrito.values.reduce((a, b) => a + b)} productos',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.teal,
+            ),
     );
   }
 }

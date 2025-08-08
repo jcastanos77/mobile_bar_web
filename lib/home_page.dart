@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 5),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
