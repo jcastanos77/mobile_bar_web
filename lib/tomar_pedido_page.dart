@@ -30,9 +30,11 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
 
   Future<void> cargarProductos() async {
     final snapshot = await FirebaseFirestore.instance.collection("productos").get();
+
     setState(() {
       productosDisponibles = snapshot.docs
           .map((doc) => {"id": doc.id, ...doc.data()})
+          .where((producto) => producto['activo'] == true)
           .toList();
     });
   }
@@ -273,6 +275,7 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
                           itemCount: productosDisponibles.length,
                           itemBuilder: (_, index) {
                             final producto = productosDisponibles[index];
+
                             return Card(
                               clipBehavior: Clip.hardEdge,
                               color: Colors.grey[800],
