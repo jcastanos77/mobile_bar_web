@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class HistorialVentasPage extends StatelessWidget {
@@ -14,7 +15,12 @@ class HistorialVentasPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white,),
+            onPressed: () {
+              context.pop();
+            },
+          ),
           title: const Text("Historial de Ventas")),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

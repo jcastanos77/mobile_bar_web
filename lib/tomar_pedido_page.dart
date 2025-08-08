@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class TomarPedidoScreen extends StatefulWidget {
@@ -230,6 +231,12 @@ class _TomarPedidoScreenState extends State<TomarPedidoScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white,),
+          onPressed: () {
+            context.pop();
+          },
+        ),
         backgroundColor: Colors.teal,
         title: const Text("Tomar Pedido"),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 
 class RegistrarUsuarioPage extends StatefulWidget {
   const RegistrarUsuarioPage({super.key});
@@ -66,6 +67,12 @@ class _RegistrarUsuarioPageState extends State<RegistrarUsuarioPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white,),
+            onPressed: () {
+              context.pop();
+            },
+          ),
           backgroundColor: Colors.teal,
           title: const Text('Registrar nuevo usuario')),
       body: Padding(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:go_router/go_router.dart';
 import 'dart:html' as html;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -30,6 +31,12 @@ class _AgregarProductoPageState extends State<AgregarProductoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white,),
+            onPressed: () {
+              context.pop();
+            },
+          ),
           backgroundColor: Colors.teal,
           title: const Text('Productos')),
       body: StreamBuilder<QuerySnapshot>(
